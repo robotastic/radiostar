@@ -6,7 +6,7 @@
 #
 # GNU Radio Python Flow Graph
 # Title: Not titled yet
-# GNU Radio version: 3.8.1.0
+# GNU Radio version: 3.9.3.0
 
 from distutils.version import StrictVersion
 
@@ -24,6 +24,7 @@ from gnuradio import analog
 from gnuradio import blocks
 from gnuradio import gr
 from gnuradio.filter import firdes
+from gnuradio.fft import window
 import sys
 import signal
 from PyQt5 import Qt
@@ -32,12 +33,15 @@ from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
 import osmosdr
 import time
+
+
+
 from gnuradio import qtgui
 
 class fmrx(gr.top_block, Qt.QWidget):
 
     def __init__(self):
-        gr.top_block.__init__(self, "Not titled yet")
+        gr.top_block.__init__(self, "Not titled yet", catch_exceptions=True)
         Qt.QWidget.__init__(self)
         self.setWindowTitle("Not titled yet")
         qtgui.util.check_set_qss()
@@ -87,7 +91,14 @@ class fmrx(gr.top_block, Qt.QWidget):
         self.rtlsdr_source_0.set_bb_gain(20, 0)
         self.rtlsdr_source_0.set_antenna('', 0)
         self.rtlsdr_source_0.set_bandwidth(200000, 0)
-        self.blocks_wavfile_sink_0 = blocks.wavfile_sink('/home/luke/radiostar/test.wav', 1, 48000, 16)
+        self.blocks_wavfile_sink_0 = blocks.wavfile_sink(
+            '/home/luke/radiostar/test.wav',
+            1,
+            48000,
+            blocks.FORMAT_WAV,
+            blocks.FORMAT_PCM_16,
+            False
+            )
         self.blocks_multiply_const_vxx_0 = blocks.multiply_const_ff(1)
         self.analog_fm_demod_cf_0 = analog.fm_demod_cf(
         	channel_rate=240000,
@@ -108,9 +119,13 @@ class fmrx(gr.top_block, Qt.QWidget):
         self.connect((self.blocks_multiply_const_vxx_0, 0), (self.blocks_wavfile_sink_0, 0))
         self.connect((self.rtlsdr_source_0, 0), (self.analog_fm_demod_cf_0, 0))
 
+
     def closeEvent(self, event):
         self.settings = Qt.QSettings("GNU Radio", "fmrx")
         self.settings.setValue("geometry", self.saveGeometry())
+        self.stop()
+        self.wait()
+
         event.accept()
 
     def get_samp_rate(self):
@@ -122,6 +137,7 @@ class fmrx(gr.top_block, Qt.QWidget):
 
 
 
+
 def main(top_block_cls=fmrx, options=None):
 
     if StrictVersion("4.5.0") <= StrictVersion(Qt.qVersion()) < StrictVersion("5.0.0"):
@@ -130,10 +146,15 @@ def main(top_block_cls=fmrx, options=None):
     qapp = Qt.QApplication(sys.argv)
 
     tb = top_block_cls()
+
     tb.start()
+
     tb.show()
 
     def sig_handler(sig=None, frame=None):
+        tb.stop()
+        tb.wait()
+
         Qt.QApplication.quit()
 
     signal.signal(signal.SIGINT, sig_handler)
@@ -143,12 +164,7 @@ def main(top_block_cls=fmrx, options=None):
     timer.start(500)
     timer.timeout.connect(lambda: None)
 
-    def quitting():
-        tb.stop()
-        tb.wait()
-    qapp.aboutToQuit.connect(quitting)
     qapp.exec_()
-
 
 if __name__ == '__main__':
     main()

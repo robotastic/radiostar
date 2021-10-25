@@ -8,13 +8,15 @@ RUN apt-get update && \
      git \
     cmake \
     python3-pip \
-    software-properties-common
+    software-properties-common \
+    build-essential \
+    libusb-dev libusb-1.0-0-dev \
+    libsndfile1-dev
 
 RUN add-apt-repository ppa:gnuradio/gnuradio-releases && \
     apt-get update && \
     apt-get install -y gnuradio \
-        gnuradio-dev \
-        gr-osmosdr 
+        gnuradio-dev 
 
 WORKDIR /src
 
@@ -28,3 +30,25 @@ WORKDIR /src/azure-software-radio/gr-azure-software-radio/build
 
 RUN cmake .. && \
     make install
+
+WORKDIR /src
+
+RUN git clone https://github.com/librtlsdr/librtlsdr.git
+
+WORKDIR /src/librtlsdr/build
+
+RUN cmake ../ -DINSTALL_UDEV_RULES=ON && \
+    make install && \
+    ldconfig
+
+WORKDIR /src
+
+RUN git clone git://git.osmocom.org/gr-osmosdr
+
+WORKDIR /src/gr-osmosdr/build
+
+RUN cmake ../ && \
+    make install && \
+    ldconfig
+
+WORKDIR /app
