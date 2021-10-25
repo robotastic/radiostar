@@ -1,0 +1,30 @@
+FROM ubuntu:21.04 AS base
+
+# Install everything except cmake
+RUN apt-get update && \
+  apt-get -y upgrade &&\
+  export DEBIAN_FRONTEND=noninteractive && \
+  apt-get install -y \
+     git \
+    cmake \
+    python3-pip \
+    software-properties-common
+
+RUN add-apt-repository ppa:gnuradio/gnuradio-releases && \
+    apt-get update && \
+    apt-get install -y gnuradio \
+        gnuradio-dev \
+        gr-osmosdr 
+
+WORKDIR /src
+
+RUN git clone https://github.com/microsoft/azure-software-radio.git
+
+WORKDIR /src/azure-software-radio/gr-azure-software-radio
+
+RUN pip install -r python/requirements.txt
+
+WORKDIR /src/azure-software-radio/gr-azure-software-radio/build
+
+RUN cmake .. && \
+    make install
