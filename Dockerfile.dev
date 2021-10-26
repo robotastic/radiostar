@@ -60,3 +60,4 @@ RUN cmake -DCMAKE_INSTALL_PREFIX=/usr ../ && \
     ldconfig
 
 WORKDIR /app
+ENV PYTHONPATH "${PYTHONPATH}:/usr/local/lib/python3/dist-packages"
