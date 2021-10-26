@@ -31,6 +31,8 @@ from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
 import osmosdr
 import time
+from azure_software_radio import blob_sink
+
 
 class fmrx(gr.top_block):
 
@@ -67,13 +69,19 @@ class fmrx(gr.top_block):
         	gain=1.0,
         	tau=75e-6,
         )
-
+        #authentication_method="url_with_sas",
+        self.blob_sink = blob_sink(
+            url="https://radiostar.blob.core.windows.net/radiostar-sdr",
+            blob_name="radiostar-sdr",
+            container_name="radiostar"
+        )
 
 
         ##################################################
         # Connections
         ##################################################
         self.connect((self.rtlsdr_source_0, 0), (self.analog_fm_demod_cf_0, 0))
+        self.connect((self.rtlsdr_source_0, 0), (self.blob_sink, 0))
         self.connect((self.analog_fm_demod_cf_0, 0), (self.blocks_multiply_const_vxx_0, 0))
         self.connect((self.blocks_multiply_const_vxx_0, 0), (self.blocks_wavfile_sink_0, 0))
 
