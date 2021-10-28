@@ -151,7 +151,7 @@ RUN git clone https://github.com/gnuradio/gnuradio.git && \
     git checkout v3.9.3.0 && \
     mkdir build && \
     cd build && \
-    cmake -DCMAKE_BUILD_TYPE=Release   ../ && \
+    cmake -DCMAKE_BUILD_TYPE=Release  -DPYTHON_EXECUTABLE=/usr/bin/python3  ../ && \
     make -j4 && \
     make install && \
     ldconfig && \
@@ -162,4 +162,13 @@ RUN git clone https://github.com/microsoft/azure-software-radio.git && \
     mkdir -p /src/build && \
     cd /src/azure-software-radio/gr-azure-software-radio && \
     pip install -r  python/requirements.txt && \
-    cd /src/build 
+    cd /src/build && \
+    cmake /src/azure-software-radio/gr-azure-software-radio && \
+    make install && \
+    rm -rf /src/
+
+COPY . /home/site/wwwroot
+
+ENV LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:/usr/lib/python3/dist-packages"
+ENV PYTHONPATH "${PYTHONPATH}:/usr/local/lib/python3/dist-packages:/usr/lib/python3/dist-packages"
+RUN ldconfig
