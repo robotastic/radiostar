@@ -1,15 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
-#
-# SPDX-License-Identifier: GPL-3.0
-#
-# GNU Radio Python Flow Graph
-# Title: Not titled yet
-# GNU Radio version: 3.8.1.0
-
-from distutils.version import StrictVersion
-
+import logging
 from gnuradio import analog
 from gnuradio import blocks
 from gnuradio import gr
@@ -19,16 +8,15 @@ import signal
 from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
-import osmosdr
 import time
-from azure_software_radio import blob_sink
+from azure_software_radio import blob_source
+import azure.functions as func
 
 
-class fmrx(gr.top_block):
+class fmrx(gr.top_block, src_blob_name):
 
     def __init__(self):
         gr.top_block.__init__(self, "Not titled yet")
-        self.log = gr.logger("log_debug")
 
         ##################################################
         # Variables
@@ -38,13 +26,9 @@ class fmrx(gr.top_block):
         ##################################################
         # Blocks
         ##################################################
-        self.rtlsdr_source_0 = osmosdr.source("rtl=200")
-        self.rtlsdr_source_0.set_sample_rate(samp_rate)
-        self.rtlsdr_source_0.set_center_freq(88500000, 0)
-        self.rtlsdr_source_0.set_gain(30, 0)
-        self.rtlsdr_source_0.set_bandwidth(200000, 0)
+        src_blob_name = src_blob_name.split("/")
 
-        self.blocks_wavfile_sink_0 = blocks.wavfile_sink('/app/original.wav', 1, 48000, blocks.FORMAT_WAV, blocks.FORMAT_PCM_16)
+        self.blocks_wavfile_sink_0 = blocks.wavfile_sink("test.wav", 1, 48000, blocks.FORMAT_WAV, blocks.FORMAT_PCM_16)
         
         self.blocks_multiply_const_vxx_0 = blocks.multiply_const_ff(1)
         
@@ -58,19 +42,18 @@ class fmrx(gr.top_block):
         	tau=75e-6,
         )
         
-        self.blob_sink = blob_sink(
-            authentication_method="url_with_sas",
-            url="fil_in",
-            blob_name="raw5.iq",
-            container_name="inbox"
+        self.blob_source = blob_source(
+            authentication_method="connection_string",
+            connection_str=os.environ['AzureWebJobsStorage'],
+            blob_name=src_blob_name[1],
+            container_name=src_blob_name[0]
         )
 
 
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.rtlsdr_source_0, 0), (self.analog_fm_demod_cf_0, 0))
-        self.connect((self.rtlsdr_source_0, 0), (self.blob_sink, 0))
+        self.connect((self.blob_source, 0), (self.analog_fm_demod_cf_0, 0))
         self.connect((self.analog_fm_demod_cf_0, 0), (self.blocks_multiply_const_vxx_0, 0))
         self.connect((self.blocks_multiply_const_vxx_0, 0), (self.blocks_wavfile_sink_0, 0))
 
@@ -83,24 +66,14 @@ class fmrx(gr.top_block):
         self.rtlsdr_source_0.set_sample_rate(self.samp_rate)
 
     def closeEvent(self, event):
-        self.log.debug("closeEvent()")
         event.accept()
 
 
-def main(top_block_cls=fmrx, options=None):
-    tb = top_block_cls()
-    log = gr.logger("log_debug")    
+def main(myblob):
+    tb = fmrx(myblob.name)  
     tb.start()
 
-    time.sleep(10)
-
-    tb.stop()
-
     tb.wait()
-
-
-if __name__ == '__main__':
-    try:
-        main()
-    except KeyboardInterrupt:
-        pass
+    
+    logging.info(myblob.name)
+    logging.info(myblob)

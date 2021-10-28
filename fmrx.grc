@@ -1,6 +1,7 @@
 options:
   parameters:
     author: ''
+    catch_exceptions: 'True'
     category: '[GRC Hier Blocks]'
     cmake_opt: ''
     comment: ''
@@ -8,7 +9,7 @@ options:
     description: ''
     gen_cmake: 'On'
     gen_linking: dynamic
-    generate_options: qt_gui
+    generate_options: no_gui
     hier_block_src_path: '.:'
     id: fmrx
     max_nouts: '0'
@@ -18,11 +19,10 @@ options:
     realtime_scheduling: ''
     run: 'True'
     run_command: '{python} -u {filename}'
-    run_options: prompt
+    run_options: run
     sizing_mode: fixed
     thread_safe_setters: ''
     title: Not titled yet
-    window_size: ''
   states:
     bus_sink: false
     bus_source: false
@@ -89,9 +89,14 @@ blocks:
   parameters:
     affinity: ''
     alias: ''
-    bits_per_sample: '16'
+    append: 'False'
+    bits_per_sample1: FORMAT_PCM_16
+    bits_per_sample2: FORMAT_PCM_16
+    bits_per_sample3: FORMAT_VORBIS
+    bits_per_sample4: FORMAT_PCM_16
     comment: ''
     file: /home/luke/radiostar/test.wav
+    format: FORMAT_WAV
     nchan: '1'
     samp_rate: '48000'
   states:

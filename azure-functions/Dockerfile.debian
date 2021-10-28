@@ -1,0 +1,24 @@
+# To enable ssh & remote debugging on app service change the base image to the one below
+# FROM mcr.microsoft.com/azure-functions/python:3.0-python3.8-appservice
+FROM mcr.microsoft.com/azure-functions/python:3.0-python3.8
+
+ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
+    AzureFunctionsJobHost__Logging__Console__IsEnabled=true
+
+COPY requirements.txt /
+RUN pip install -r /requirements.txt
+
+RUN sed -i 's/buster main/sid main/g' /etc/apt/sources.list && \
+    apt update && \
+    export DEBIAN_FRONTEND=noninteractive && \
+    apt full-upgrade -y
+
+RUN echo "deb http://deb.debian.org/debian experimental main" | tee /etc/apt/sources.list && \
+    apt update && \
+    apt -t experimental install gnuradio
+
+
+COPY . /home/site/wwwroot
+ENV LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:/usr/lib/python3/dist-packages"
+ENV PYTHONPATH "${PYTHONPATH}:/usr/local/lib/python3/dist-packages:/usr/lib/python3/dist-packages"
+RUN ldconfig

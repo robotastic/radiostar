@@ -19,14 +19,8 @@ RUN add-apt-repository ppa:gnuradio/gnuradio-releases && \
     apt-get install -y gnuradio \
         gnuradio-dev 
 
+
 WORKDIR /src
-
-RUN curl -sL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/microsoft.gpg > /dev/null
-
-RUN echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ focal main" | tee /etc/apt/sources.list.d/azure-cli.list
-
-RUN apt-get update && \
-    apt-get install azure-cli
 
 RUN git clone https://github.com/microsoft/azure-software-radio.git
 
@@ -60,4 +54,6 @@ RUN cmake -DCMAKE_INSTALL_PREFIX=/usr ../ && \
     ldconfig
 
 WORKDIR /app
-ENV PYTHONPATH "${PYTHONPATH}:/usr/local/lib/python3/dist-packages"
+ENV LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:/usr/lib/python3/dist-packages"
+ENV PYTHONPATH "${PYTHONPATH}:/usr/local/lib/python3/dist-packages:/usr/lib/python3/dist-packages"
+RUN ldconfig

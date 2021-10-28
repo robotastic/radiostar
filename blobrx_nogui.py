@@ -19,9 +19,8 @@ import signal
 from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
-import osmosdr
 import time
-from azure_software_radio import blob_sink
+from azure_software_radio import blob_source
 
 
 class fmrx(gr.top_block):
@@ -38,13 +37,9 @@ class fmrx(gr.top_block):
         ##################################################
         # Blocks
         ##################################################
-        self.rtlsdr_source_0 = osmosdr.source("rtl=200")
-        self.rtlsdr_source_0.set_sample_rate(samp_rate)
-        self.rtlsdr_source_0.set_center_freq(88500000, 0)
-        self.rtlsdr_source_0.set_gain(30, 0)
-        self.rtlsdr_source_0.set_bandwidth(200000, 0)
 
-        self.blocks_wavfile_sink_0 = blocks.wavfile_sink('/app/original.wav', 1, 48000, blocks.FORMAT_WAV, blocks.FORMAT_PCM_16)
+
+        self.blocks_wavfile_sink_0 = blocks.wavfile_sink('/app/blobbed.wav', 1, 48000, blocks.FORMAT_WAV, blocks.FORMAT_PCM_16)
         
         self.blocks_multiply_const_vxx_0 = blocks.multiply_const_ff(1)
         
@@ -58,19 +53,18 @@ class fmrx(gr.top_block):
         	tau=75e-6,
         )
         
-        self.blob_sink = blob_sink(
+        self.blob_source = blob_source(
             authentication_method="url_with_sas",
-            url="fil_in",
-            blob_name="raw5.iq",
-            container_name="inbox"
+            url="fill_in",
+            blob_name="radiostar-sdr",
+            container_name="radiostar"
         )
 
 
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.rtlsdr_source_0, 0), (self.analog_fm_demod_cf_0, 0))
-        self.connect((self.rtlsdr_source_0, 0), (self.blob_sink, 0))
+        self.connect((self.blob_source, 0), (self.analog_fm_demod_cf_0, 0))
         self.connect((self.analog_fm_demod_cf_0, 0), (self.blocks_multiply_const_vxx_0, 0))
         self.connect((self.blocks_multiply_const_vxx_0, 0), (self.blocks_wavfile_sink_0, 0))
 
@@ -92,9 +86,8 @@ def main(top_block_cls=fmrx, options=None):
     log = gr.logger("log_debug")    
     tb.start()
 
-    time.sleep(10)
 
-    tb.stop()
+    #tb.stop()
 
     tb.wait()
 
