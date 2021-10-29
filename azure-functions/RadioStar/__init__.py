@@ -1,9 +1,12 @@
 import logging
+import sys
+sys.path.insert(0,'/usr/local/lib/python3/dist-packages')
+sys.path.insert(0,'/usr/lib/python3/dist-packages')
 from gnuradio import analog
 from gnuradio import blocks
 from gnuradio import gr
 from gnuradio.filter import firdes
-import sys
+
 import signal
 from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
@@ -13,9 +16,9 @@ from azure_software_radio import blob_source
 import azure.functions as func
 
 
-class fmrx(gr.top_block, src_blob_name):
+class fmrx(gr.top_block):
 
-    def __init__(self):
+    def __init__(self, src_blob_name):
         gr.top_block.__init__(self, "Not titled yet")
 
         ##################################################
@@ -69,7 +72,7 @@ class fmrx(gr.top_block, src_blob_name):
         event.accept()
 
 
-def main(myblob):
+def main(myblob: func.InputStream):
     tb = fmrx(myblob.name)  
     tb.start()
 

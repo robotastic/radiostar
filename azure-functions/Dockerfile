@@ -169,6 +169,9 @@ RUN git clone https://github.com/microsoft/azure-software-radio.git && \
 
 COPY . /home/site/wwwroot
 
+#RUN mkdir -p /home/site/wwwroot/.python_packages/lib/site-packages && \
+#    cp -r /usr/local/lib/python3/dist-packages/* /home/site/wwwroot/.python_packages/lib/site-packages/
+
 ENV LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:/usr/lib/python3/dist-packages"
 ENV PYTHONPATH "${PYTHONPATH}:/usr/local/lib/python3/dist-packages:/usr/lib/python3/dist-packages"
 RUN ldconfig
