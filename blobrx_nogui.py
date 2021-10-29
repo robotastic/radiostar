@@ -55,7 +55,7 @@ class fmrx(gr.top_block):
         
         self.blob_source = blob_source(
             authentication_method="url_with_sas",
-            url="fill_in",
+            url="https://radiostar.blob.core.windows.net/radiostar-sdr?sp=racwdli&st=2021-10-26T14:19:37Z&se=2021-11-05T22:19:37Z&sv=2020-08-04&sr=c&sig=toQkprhEGKQY09TQVPVMZeRD4CYL13Nc8gmZgUKXUBc%3D",
             blob_name="radiostar-sdr",
             container_name="radiostar"
         )

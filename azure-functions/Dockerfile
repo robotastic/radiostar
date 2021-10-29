@@ -151,7 +151,7 @@ RUN git clone https://github.com/gnuradio/gnuradio.git && \
     git checkout v3.9.3.0 && \
     mkdir build && \
     cd build && \
-    cmake -DCMAKE_BUILD_TYPE=Release  -DPYTHON_EXECUTABLE=/usr/bin/python3  ../ && \
+    cmake -DCMAKE_BUILD_TYPE=Release  -DPYTHON_EXECUTABLE=/usr/bin/python3 -DCMAKE_INSTALL_PREFIX=/usr ../ && \
     make -j4 && \
     make install && \
     ldconfig && \
@@ -163,7 +163,7 @@ RUN git clone https://github.com/microsoft/azure-software-radio.git && \
     cd /src/azure-software-radio/gr-azure-software-radio && \
     pip install -r  python/requirements.txt && \
     cd /src/build && \
-    cmake /src/azure-software-radio/gr-azure-software-radio && \
+    cmake -DCMAKE_INSTALL_PREFIX=/usr /src/azure-software-radio/gr-azure-software-radio && \
     make install && \
     rm -rf /src/
 

@@ -41,7 +41,9 @@ WORKDIR /src/librtlsdr/build
 
 RUN cmake ../ -DINSTALL_UDEV_RULES=ON && \
     make install && \
-    ldconfig
+    ldconfig && \
+    cd /src/librtlsdr && \
+    ./install-blacklist.sh
 
 WORKDIR /src
 
@@ -53,8 +55,10 @@ RUN cmake -DCMAKE_INSTALL_PREFIX=/usr ../ && \
     make install && \
     ldconfig
 
-RUN apt install -y wget
+RUN apt install -y wget udev kmod
 RUN wget https://raw.githubusercontent.com/osmocom/rtl-sdr/master/rtl-sdr.rules -O /etc/udev/rules.d/20.rtlsdr.rules
+RUN echo "blacklist dvb_usb_rtl2832u\nblacklist dvb_usb_rtl28xxu\nblacklist dvb_usb_v2\nblacklist rtl2832\nblacklist dvb_core" >> /etc/modprobe.d/blacklist.conf
+
 
 WORKDIR /app
 ENV LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:/usr/lib/python3/dist-packages"
