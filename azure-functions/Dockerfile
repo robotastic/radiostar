@@ -172,6 +172,9 @@ COPY . /home/site/wwwroot
 #RUN mkdir -p /home/site/wwwroot/.python_packages/lib/site-packages && \
 #    cp -r /usr/local/lib/python3/dist-packages/* /home/site/wwwroot/.python_packages/lib/site-packages/
 
+
+RUN sed -i 's/debug_level = emerg/debug_level = debug/g' /etc/gnuradio/conf.d/gnuradio-runtime.conf
+
 ENV LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:/usr/lib/python3/dist-packages"
 ENV PYTHONPATH "${PYTHONPATH}:/usr/local/lib/python3/dist-packages:/usr/lib/python3/dist-packages"
 RUN ldconfig

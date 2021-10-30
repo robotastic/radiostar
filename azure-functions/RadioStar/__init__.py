@@ -15,6 +15,9 @@ from gnuradio import eng_notation
 import time
 from azure_software_radio import blob_source
 import azure.functions as func
+import uuid
+from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient, __version__
+from azure.core.exceptions import HttpResponseError, ResourceExistsError
 
 
 class fmrx(gr.top_block):
@@ -32,7 +35,7 @@ class fmrx(gr.top_block):
         ##################################################
         src_blob_name = src_blob_name.split("/")
 
-        self.blocks_wavfile_sink_0 = blocks.wavfile_sink("test.wav", 1, 48000, blocks.FORMAT_WAV, blocks.FORMAT_PCM_16)
+        self.blocks_wavfile_sink_0 = blocks.wavfile_sink("./temp.wav", 1, 48000, blocks.FORMAT_WAV, blocks.FORMAT_PCM_16)
         
         self.blocks_multiply_const_vxx_0 = blocks.multiply_const_ff(1)
         
@@ -74,10 +77,64 @@ class fmrx(gr.top_block):
 
 
 def main(myblob: func.InputStream):
+    #logging.info(os.environ.keys())
     tb = fmrx(myblob.name)  
     tb.start()
 
     tb.wait()
     
+    connect_str = os.environ['AzureWebJobsStorage']
+
+    try:
+        logging.info("Azure Blob Storage v" + __version__ + " - Python quickstart sample")
+        logging.info(connect_str)
+        # Quick start code goes here
+
+    except Exception as ex:
+        print('Exception:')
+        print(ex)
+
+    # Create a unique name for the container
+    container_name = "outbox"
+
+
+    # Create the BlobServiceClient object which will be used to create a container client
+    blob_service_client = BlobServiceClient.from_connection_string(connect_str)
+
+
+    try:
+        new_container = blob_service_client.create_container(container_name)
+        properties = new_container.get_container_properties()
+    except ResourceExistsError:
+        logging.info("Container already exists.")
+
+
+
+    local_path = "./"
+    #dirs = os.listdir( local_path )
+
+    # This would print all the files and directories
+    #for file in dirs:
+    #    logging.info(file)
+
+    # Create a file in the local data directory to upload and download
+    local_file_name = "temp.wav"
+    upload_file_path = os.path.join(local_path, local_file_name)
+
+
+
+
+
+    # Create a blob client using the local file name as the name for the blob
+    blob_client = blob_service_client.get_blob_client(container=container_name, blob=local_file_name)
+
+    logging.info("\nUploading to Azure Storage as blob:\n\t" + local_file_name)
+
+    # Upload the created file
+    with open(upload_file_path, "rb") as data:
+        blob_client.upload_blob(data)
+
+
+
     logging.info(myblob.name)
     logging.info(myblob)
