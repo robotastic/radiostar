@@ -1,6 +1,81 @@
-FROM python:3.7-slim-buster
+# FROM python:3.7-slim-buster
+
+# WORKDIR /app
+
+# COPY requirements.txt ./
+# RUN pip install -r requirements.txt
+
+# COPY . .
+
+# CMD [ "python3", "-u", "./main.py" ]
+FROM ubuntu:21.04 AS base
+
+# Install everything except cmake
+RUN apt-get update && \
+  apt-get -y upgrade &&\
+  export DEBIAN_FRONTEND=noninteractive && \
+  apt-get install -y \
+     git \
+    cmake \
+    python3-pip \
+    software-properties-common \
+    build-essential \
+    libusb-dev libusb-1.0-0-dev \
+    libsndfile1-dev \
+    ca-certificates curl apt-transport-https lsb-release gnupg 
+
+RUN add-apt-repository ppa:gnuradio/gnuradio-releases && \
+    apt-get update && \
+    apt-get install -y gnuradio \
+        gnuradio-dev 
+
+
+WORKDIR /src
+
+RUN git clone https://github.com/microsoft/azure-software-radio.git
+
+WORKDIR /src/azure-software-radio/gr-azure-software-radio
+
+RUN pip install -r python/requirements.txt
+
+WORKDIR /src/azure-software-radio/gr-azure-software-radio/build
+
+RUN cmake .. && \
+    make install
+
+WORKDIR /src
+
+RUN git clone https://github.com/librtlsdr/librtlsdr.git
+
+WORKDIR /src/librtlsdr/build
+
+RUN cmake ../ -DINSTALL_UDEV_RULES=ON && \
+    make install && \
+    ldconfig && \
+    cd /src/librtlsdr && \
+    ./install-blacklist.sh
+
+WORKDIR /src
+
+RUN git clone git://git.osmocom.org/gr-osmosdr
+
+WORKDIR /src/gr-osmosdr/build
+
+RUN cmake -DCMAKE_INSTALL_PREFIX=/usr ../ && \
+    make install && \
+    ldconfig
+
+RUN apt install -y wget udev kmod
+RUN wget https://raw.githubusercontent.com/osmocom/rtl-sdr/master/rtl-sdr.rules -O /etc/udev/rules.d/20.rtlsdr.rules
+RUN echo "blacklist dvb_usb_rtl2832u\nblacklist dvb_usb_rtl28xxu\nblacklist dvb_usb_v2\nblacklist rtl2832\nblacklist dvb_core" >> /etc/modprobe.d/blacklist.conf
+
 
 WORKDIR /app
+
+ENV LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:/usr/lib/python3/dist-packages"
+ENV PYTHONPATH "${PYTHONPATH}:/usr/local/lib/python3/dist-packages:/usr/lib/python3/dist-packages"
+RUN ldconfig
+RUN sed -i 's/debug_level = emerg/debug_level = debug/g' /etc/gnuradio/conf.d/gnuradio-runtime.conf
 
 COPY requirements.txt ./
 RUN pip install -r requirements.txt

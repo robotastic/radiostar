@@ -115,6 +115,11 @@ def main(top_block_cls=fmrx, options=None):
         rec_time = os.environ['APP_REC_TIME']
     else:
         rec_time = 60
+    if os.environ.get('APP_REST_TIME')!=None:
+        rest_time = os.environ['APP_REST_TIME']
+    else:
+        rest_time = 600
+
     tb = top_block_cls()
     log = gr.logger("log_debug")    
     tb.start()

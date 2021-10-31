@@ -64,7 +64,30 @@
             "restartPolicy": "always",
             "settings": {
               "image": "${MODULES.SampleModule}",
-              "createOptions": {}
+              "createOptions": {
+                "HostConfig": {
+                  "Binds":["/dev/bus/usb:/dev/bus/usb"],
+                  "Privileged": true
+                }
+              }
+            },
+            
+            "env": {
+              "APP_CONNECTION_STR":{
+                "value": "$APP_CONNECTION_STR"
+              },
+              "APP_RTL_SRC":{
+                "value": "$APP_RTL_SRC"
+              },
+              "APP_FREQ":{
+                "value": "$APP_FREQ"
+              },              
+              "APP_REC_TIME":{
+                "value": "$APP_REC_TIME"
+              },
+              "APP_REST_TIME":{
+                "value": "$APP_REST_TIME"
+              }
             }
           },
           "SimulatedTemperatureSensor": {

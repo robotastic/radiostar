@@ -35,7 +35,7 @@ class fmrx(gr.top_block):
         ##################################################
         src_blob_name = src_blob_name.split("/")
 
-        self.blocks_wavfile_sink_0 = blocks.wavfile_sink("./temp.wav", 1, 48000, blocks.FORMAT_WAV, blocks.FORMAT_PCM_16)
+        self.blocks_wavfile_sink_0 = blocks.wavfile_sink("./latest.wav", 1, 48000, blocks.FORMAT_WAV, blocks.FORMAT_PCM_16)
         
         self.blocks_multiply_const_vxx_0 = blocks.multiply_const_ff(1)
         
@@ -118,7 +118,7 @@ def main(myblob: func.InputStream):
     #    logging.info(file)
 
     # Create a file in the local data directory to upload and download
-    local_file_name = "temp.wav"
+    local_file_name = "latest.wav"
     upload_file_path = os.path.join(local_path, local_file_name)
 
 
@@ -132,7 +132,7 @@ def main(myblob: func.InputStream):
 
     # Upload the created file
     with open(upload_file_path, "rb") as data:
-        blob_client.upload_blob(data)
+        blob_client.upload_blob(data, overwrite=True)
 
 
 
