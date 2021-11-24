@@ -17,13 +17,14 @@ from gnuradio import blocks
 from gnuradio import gr
 from gnuradio.filter import firdes
 import sys, os
+import numpy as np
 import signal
 from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
 import osmosdr
 import time
-from azure_software_radio import blob_sink
+from azure_software_radio import BlobSink
 from datetime import datetime, timedelta
 
 class fmrx(gr.top_block):
@@ -70,21 +71,23 @@ class fmrx(gr.top_block):
 
         #self.blocks_wavfile_sink_0 = blocks.wavfile_sink('/app/original.wav', 1, 48000, blocks.FORMAT_WAV, blocks.FORMAT_PCM_16)
         
-        #self.blocks_multiply_const_vxx_0 = blocks.multiply_const_ff(1)
+        self.blocks_multiply_const_vxx_0 = blocks.multiply_const_ff(1)
         
-        # self.analog_fm_demod_cf_0 = analog.fm_demod_cf(
-        # 	channel_rate=240000,
-        # 	audio_decim=5,
-        # 	deviation=75000,
-        # 	audio_pass=16000,
-        # 	audio_stop=20000,
-        # 	gain=1.0,
-        # 	tau=75e-6,
-        # )
+        self.analog_fm_demod_cf_0 = analog.fm_demod_cf(
+        	channel_rate=240000,
+        	audio_decim=5,
+        	deviation=75000,
+        	audio_pass=16000,
+        	audio_stop=20000,
+        	gain=1.0,
+        	tau=75e-6,
+        )
         
         blob_name = "raw_{}_{}.iq".format(datetime.now().strftime('%Y-%m-%d-%H-%M-%S'), self.freq)
         
-        self.blob_sink = blob_sink(
+        self.blob_sink = BlobSink(
+            np_dtype=np.float32,
+            vlen=1,
             authentication_method="connection_string",
             connection_str=self.connection_str,
             blob_name=blob_name,
@@ -95,10 +98,11 @@ class fmrx(gr.top_block):
         ##################################################
         # Connections
         ##################################################
-        #self.connect((self.rtlsdr_source_0, 0), (self.analog_fm_demod_cf_0, 0))
-        self.connect((self.rtlsdr_source_0, 0), (self.blob_sink, 0))
-        #self.connect((self.analog_fm_demod_cf_0, 0), (self.blocks_multiply_const_vxx_0, 0))
-        #self.connect((self.blocks_multiply_const_vxx_0, 0), (self.blocks_wavfile_sink_0, 0))
+        #self.connect((self.rtlsdr_source_0, 0), (self.blob_sink, 0))
+        
+        self.connect((self.rtlsdr_source_0, 0), (self.analog_fm_demod_cf_0, 0))
+        self.connect((self.analog_fm_demod_cf_0, 0), (self.blocks_multiply_const_vxx_0, 0))
+        self.connect((self.blocks_multiply_const_vxx_0, 0), (self.blob_sink, 0))
 
 
     def get_samp_rate(self):
@@ -175,9 +179,9 @@ async def main():
 
         
         log = gr.logger("log_debug")    
-        
+        tb = fmrx()      
         while True:
-            tb = fmrx()
+
             tb.start()
             print("Recording for: {}".format(rec_time))
             time.sleep(rec_time)

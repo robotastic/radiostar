@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/ac76e3f3-577c-4b45-b508-d8d7b932b701/resourceGroups/appsvc_linux_centralus/providers/Microsoft.Web/sites/RadioStar-WebApp",
+    "appService.deploySubpath": "."
+}
